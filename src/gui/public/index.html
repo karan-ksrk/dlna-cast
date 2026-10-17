@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="api-token" content="__API_TOKEN__">
+  <title>dlna-cast</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 40 20" aria-hidden="true"><path fill-rule="evenodd" d="M3 6a5 5 0 0 1 5-5h24a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5h-8.5L20 14.9 16.5 19H8a5 5 0 0 1-5-5ZM10 4h4.5A3.5 3.5 0 0 1 18 7.5v2a3.5 3.5 0 0 1-3.5 3.5H10a3.5 3.5 0 0 1-3.5-3.5v-2A3.5 3.5 0 0 1 10 4Zm15.5 0H30a3.5 3.5 0 0 1 3.5 3.5v2A3.5 3.5 0 0 1 30 13h-4.5A3.5 3.5 0 0 1 22 9.5v-2A3.5 3.5 0 0 1 25.5 4Z"/></svg>
+        <h1>dlna-cast</h1>
+      </div>
+      <p class="target" id="target">No renderer selected</p>
+    </header>
+
+    <aside class="rail" aria-labelledby="renderers-heading">
+      <div class="rail-head">
+        <h2 id="renderers-heading">Renderers</h2>
+        <button type="button" class="quiet" id="searchButton">Search</button>
+      </div>
+      <ul class="device-list" id="deviceList" aria-live="polite"></ul>
+      <p class="empty" id="deviceEmpty">No renderers yet. Turn on your goggles; they show up here within a few seconds.</p>
+      <form class="probe" id="probeForm">
+        <label for="probeAddress">Add a device by IP address</label>
+        <div class="field-row">
+          <input id="probeAddress" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="192.168.1.42">
+          <button type="submit" class="quiet">Add</button>
+        </div>
+      </form>
+    </aside>
+
+    <main class="stage">
+      <div class="notice" id="notice" role="alert" hidden>
+        <p id="noticeText"></p>
+        <button type="button" class="quiet" id="noticeDismiss">Dismiss</button>
+      </div>
+
+      <section class="viewer" aria-label="Now playing">
+        <div class="goggles" id="goggles" data-state="idle">
+          <svg viewBox="0 0 760 300" aria-hidden="true">
+            <defs>
+              <radialGradient id="glass" cx="38%" cy="32%" r="80%">
+                <stop offset="0" stop-color="#3B424B"/>
+                <stop offset="0.55" stop-color="#262B31"/>
+                <stop offset="1" stop-color="#181B1F"/>
+              </radialGradient>
+            </defs>
+            <rect class="strap" x="0" y="112" width="84" height="76" rx="14"/>
+            <rect class="strap" x="676" y="112" width="84" height="76" rx="14"/>
+            <path class="frame" d="M120 18h520a54 54 0 0 1 54 54v156a54 54 0 0 1-54 54H458c-17 0-27-9-35-24l-17-32c-11-21-41-21-52 0l-17 32c-8 15-18 24-35 24H120a54 54 0 0 1-54-54V72a54 54 0 0 1 54-54Z"/>
+            <rect class="lens" x="98" y="44" width="254" height="206" rx="84"/>
+            <rect class="lens" x="408" y="44" width="254" height="206" rx="84"/>
+            <path class="glint" d="M128 104c18-34 52-50 92-50"/>
+            <path class="glint" d="M438 104c18-34 52-50 92-50"/>
+            <rect class="ring-track" x="92" y="38" width="266" height="218" rx="90" pathLength="100"/>
+            <rect class="ring-track" x="402" y="38" width="266" height="218" rx="90" pathLength="100"/>
+            <rect class="ring" x="92" y="38" width="266" height="218" rx="90" pathLength="100"/>
+            <rect class="ring" x="402" y="38" width="266" height="218" rx="90" pathLength="100"/>
+          </svg>
+          <div class="lens-content lens-left">
+            <p class="lens-kind" id="nowKind">Ready</p>
+            <h2 class="lens-title" id="nowTitle">Nothing is casting</h2>
+            <p class="lens-device" id="nowDevice"></p>
+          </div>
+          <div class="lens-content lens-right">
+            <p class="clock" id="clock">0:00:00</p>
+            <p class="clock-sub" id="clockSub">Pick a file or your screen below</p>
+            <p class="lamp" id="lamp"><span class="lamp-dot" aria-hidden="true"></span><span id="stateWord">Idle</span></p>
+          </div>
+        </div>
+
+        <div class="scrub" id="scrubRow">
+          <span class="time" id="positionLabel">0:00</span>
+          <input type="range" id="seekBar" min="0" max="0" step="1" value="0" aria-label="Playback position" disabled>
+          <span class="time" id="durationLabel">0:00</span>
+        </div>
+
+        <div class="controls">
+          <div class="transport" role="group" aria-label="Playback">
+            <button type="button" class="icon" id="backButton" title="Back 10 seconds (Left arrow)" aria-label="Back 10 seconds" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 6 5 12l6 6M18 6l-6 6 6 6"/></svg>
+            </button>
+            <button type="button" class="play" id="playButton" title="Pause or resume (Space)" aria-label="Pause" disabled>
+              <svg class="when-playing" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+              <svg class="when-paused" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg>
+            </button>
+            <button type="button" class="icon" id="forwardButton" title="Forward 10 seconds (Right arrow)" aria-label="Forward 10 seconds" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 6 6 6-6 6M6 6l6 6-6 6"/></svg>
+            </button>
+            <button type="button" class="icon" id="stopButton" title="Stop casting" aria-label="Stop casting" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>
+            </button>
+          </div>
+          <div class="volume" role="group" aria-label="Renderer volume">
+            <button type="button" class="icon" id="muteButton" title="Mute (M)" aria-label="Mute" aria-pressed="false" disabled>
+              <svg class="when-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>
+              <svg class="when-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="m16 9.5 5 5m0-5-5 5"/></svg>
+            </button>
+            <input type="range" id="volumeBar" min="0" max="100" step="1" value="0" aria-label="Volume" disabled>
+            <output class="time" id="volumeValue" for="volumeBar">--</output>
+          </div>
+        </div>
+
+        <dl class="stats" id="stats">
+          <div><dt>Renderer reports</dt><dd id="statState">Nothing playing</dd></div>
+          <div><dt>Sent</dt><dd id="statSent">0 MB</dd></div>
+          <div><dt>Throughput</dt><dd id="statRate">0 Mbps</dd></div>
+          <div><dt>Picture</dt><dd id="statVideo">—</dd></div>
+        </dl>
+      </section>
+
+      <section class="source" aria-labelledby="source-heading">
+        <h2 id="source-heading" class="visually-hidden">What to cast</h2>
+        <div class="tabs" role="tablist" aria-label="What to cast">
+          <button type="button" role="tab" id="tabFile" aria-controls="panelFile" aria-selected="true">A file</button>
+          <button type="button" role="tab" id="tabScreen" aria-controls="panelScreen" aria-selected="false" tabindex="-1">My screen</button>
+        </div>
+
+        <div class="panel" id="panelFile" role="tabpanel" aria-labelledby="tabFile">
+          <label for="filePath">Video or music file</label>
+          <div class="field-row">
+            <input id="filePath" autocomplete="off" spellcheck="false" placeholder="G:\Videos\holiday.mp4">
+            <button type="button" class="quiet" id="browseButton">Browse…</button>
+          </div>
+          <div class="panel-actions">
+            <button type="button" class="primary" id="castFileButton">Cast file</button>
+          </div>
+          <div class="recent" id="recentBlock" hidden>
+            <h3>Recent</h3>
+            <ul id="recentList"></ul>
+          </div>
+        </div>
+
+        <div class="panel" id="panelScreen" role="tabpanel" aria-labelledby="tabScreen" hidden>
+          <p class="empty" id="ffmpegMissing" hidden>Screen casting needs ffmpeg. Install it, then restart dlna-cast.</p>
+          <div class="screen-grid">
+            <div class="field">
+              <label for="monitorSelect">Display</label>
+              <select id="monitorSelect"><option>Checking this PC…</option></select>
+            </div>
+            <div class="field">
+              <label for="audioSelect">Sound</label>
+              <select id="audioSelect">
+                <option value="system">Sound from this PC</option>
+                <option value="none">No sound</option>
+              </select>
+            </div>
+          </div>
+          <fieldset class="quality">
+            <legend>Quality</legend>
+            <label><input type="radio" name="quality" value="light"><span class="q-name">Light</span><span class="q-desc">720p, 30 fps, gentle on Wi-Fi</span></label>
+            <label><input type="radio" name="quality" value="balanced" checked><span class="q-name">Balanced</span><span class="q-desc">1080p, 30 fps</span></label>
+            <label><input type="radio" name="quality" value="smooth"><span class="q-name">Smooth</span><span class="q-desc">1080p, 60 fps, needs strong Wi-Fi</span></label>
+          </fieldset>
+          <div class="checks">
+            <label><input type="checkbox" id="mouseCheck" checked> Show the mouse pointer</label>
+            <label><input type="checkbox" id="testPatternCheck"> Send a test pattern instead of the screen</label>
+          </div>
+          <details class="advanced">
+            <summary>Encoder</summary>
+            <div class="field">
+              <label for="encoderSelect">Video encoder</label>
+              <select id="encoderSelect"><option value="auto">Best available</option></select>
+            </div>
+          </details>
+          <div class="panel-actions">
+            <button type="button" class="primary" id="castScreenButton">Cast screen</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="activity">
+      <details id="activity">
+        <summary><span>Activity</span><span class="last-log" id="lastLog"></span></summary>
+        <label class="detail-toggle"><input type="checkbox" id="detailCheck"> Show network requests</label>
+        <ol class="log" id="logList"></ol>
+      </details>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "name": "dlna-cast",
+  "version": "0.3.0",
+  "description": "Cast local videos, music or your live desktop to DLNA/UPnP renderers such as video goggles and smart TVs, from a desktop app or the command line. Zero dependencies.",
+  "keywords": [
+    "dlna",
+    "upnp",
+    "cast",
+    "screen-mirroring",
+    "screen-casting",
+    "media-renderer",
+    "ssdp",
+    "ffmpeg",
+    "video-goggles",
+    "smart-tv"
+  ],
+  "homepage": "https://github.com/karan-ksrk/dlna-cast#readme",
+  "bugs": {
+    "url": "https://github.com/karan-ksrk/dlna-cast/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karan-ksrk/dlna-cast.git"
+  },
+  "license": "MIT",
+  "author": "Karan <karanksrk2000@outlook.com> (https://github.com/karan-ksrk)",
+  "type": "module",
+  "bin": {
+    "dlna-cast": "src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "assets",
+    "tools",
+    "dlna-cast.vbs",
+    "start-gui.cmd"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "gui": "node src/cli.mjs gui"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}
